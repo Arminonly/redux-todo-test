@@ -15,17 +15,17 @@ export const myReducer = (state = initialState, action) => {
     case ADD_TODOS:
       return {
         ...state,
-        todos: state.todos + action.payload,
+        todos:action.payload,
       }
     case ADD_TEXT_INPUTING:
       return {
         ...state,
-        textInputing: state.textInputing + action.payload,
+        textInputing:action.payload,
       }
     case ADD_VALIDATION:
       return {
         ...state,
-        addValid: state.addValid + action.payload,
+        addValid:action.payload,
       }
 
     default:

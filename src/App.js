@@ -1,123 +1,109 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import './App.css'
 import { useDispatch, useSelector } from 'react-redux'
-// import {setTextInputing} from './store/actions/actions'
+import { setTextInputing, setTodos, setAddValid } from './store/actions/actions'
 
 function App() {
   const dispatch = useDispatch()
-  const textInputing = useSelector((state) => state.reducer)
-  const todos = useSelector((state) => state.reducer)
+  const addTask = useSelector((state) => state.reducer.textInputing)
+  const todos = useSelector((state) => state.reducer.todos)
+  const addValid = useSelector((state) => state.reducer.addValid)
 
-  function textInput(e) {
-    dispatch({
-      type: 'ADD_TEXT_INPUTING',
-      payload: textInputing(e.target.value),
-    })
-    console.log(textInputing);
-    
+  //* ввод текста в input
+  function textInput(text) {
+    dispatch(setTextInputing(text))
+    console.log(addTask)
   }
 
-  // const [todos, setTodos] = React.useState([])
-  // const [textInputing, setTextInputing] = React.useState('')
-  // const [addValid, setAddValid] = React.useState(false)
+//*добавление задачи в список
+  function onFormSubmit(e) {
+    e.preventDefault()
+    let inputedText = {
+      text: addTask,
+      key: Date.now(),
+      complited: false,
+    }
+    dispatch(setTodos(todos.concat(inputedText)))
+    dispatch(setTextInputing(''))
+    console.log(todos, addTask)
+  }
 
-  // useEffect(() => {
-  //   if (textInputing === '') {
-  //     setAddValid(false)
-  //   }
-  //   return () => {
-  //     setAddValid(true)
-  //   }
-  // }, [addValid, textInputing])
+  //*редактирование текста в списке задач
+  function changeText(text, key) {
+    const newText = [...todos]
+    newText.map((todo) => {
+      if (todo.key === key) {
+        todo.text = text
+      }
+      return newText
+    })
+    dispatch(setTodos(newText))
+  }
 
-  // function addTodo(e) {
-  //   e.preventDefault()
-  //   const inputedText = {
-  //     text: textInputing,
-  //     key: Date.now(),
-  //     complited: false,
-  //   }
-  //   setTodos([...todos].concat(inputedText))
-  //   console.log(todos)
+  //* удаление задачи из списка
+  function deleteTodo(key) {
+    const deleteItem = [...todos].filter((item) => item.key !== key)
+    dispatch(setTodos(deleteItem))
+  }
+  //* флаг при выполнении задачи (текст зачеркивается)
+  function toggleComplete(key) {
+    const todoComplited = [...todos].map((item) => {
+      if (item.key === key) {
+        item.complited = !item.complited
+      }
+      return item
+    })
+    dispatch(setTodos(todoComplited))
+  }
 
-  //   setTextInputing('')
-  // }
-
-  // function deleteTodo(key) {
-  //   const deleteItem = [...todos].filter((item) => item.key !== key)
-  //   setTodos(deleteItem)
-  // }
-
-  // function toggleComplete(key) {
-  //   // eslint-disable-next-line
-  //   const toggledTodo = [...todos].map((item) => {
-  //     if (item.key === key) {
-  //       item.complited = !item.complited
-  //     }
-  //     return item
-  //   })
-  //   setTodos(toggledTodo)
-  // }
-
-  // function changeValue(text, key) {
-  //   const changedText = [...todos]
-  //   // eslint-disable-next-line
-  //   changedText.map((item) => {
-  //     if (item.key === key) {
-  //       item.text = text
-  //     }
-  //   })
-  //   setTodos(changedText)
-  // }
+  //*кнопка отправки будет не валидна пока input пустой
+  useEffect(() => {
+    if (addTask === '' || addTask.trim() === '') {
+      dispatch(setAddValid(false))
+    }
+    return () => {
+      dispatch(setAddValid(true))
+    }
+  }, [addValid, addTask])
 
   return (
     <div className="App">
       <header>
-        <form
-          id="to-do-form"
-          // onSubmit={addTodo}
-        >
+        <form id="to-do-form" onSubmit={onFormSubmit}>
           <input
-            type="text"
             placeholder="Add a todo"
-            value={textInputing.text}
-            onChange={(e) =>textInput(e.target.value)}
+            value={addTask.text}
+            onChange={(e) => textInput(e.target.value)}
           />
-          <button
-            // disabled={!addValid}
-            type="submit"
-          >
+          <button disabled={!addValid} type="submit">
             Add todo
           </button>
         </form>
       </header>
       <div>
-        {todos.length ? (
+        {todos && todos.length ? (
           todos.map((todo) => {
-            const classes = []
+            const lineThrough = []
             if (todo.complited) {
-              classes.push('done')
+              lineThrough.push('done')
             }
             return (
-              <div className="list" key={todo.key}>
+              <div key={todo.key}>
                 <p>
                   <input
-                    id="check"
-                    // onChange={() => toggleComplete(todo.key)}
+                    onChange={() => toggleComplete(todo.key)}
                     type="checkbox"
                   />
                   <input
-                    id="text"
-                    type="text"
-                    className={classes.join(' ')}
-                    // onChange={(e) => changeValue(e.target.value, todo.key)}
-                    // value={todo.text}
+                    className={lineThrough.join(' ')}
+                    value={todo.text}
+                    onChange={(e) => changeText(e.target.value, todo.key)}
                   />
                   <span
-                    // onClick={() => deleteTodo(todo.key)}
                     style={{ cursor: 'pointer' }}
+                    onClick={() => deleteTodo(todo.key)}
                   >
-                    [x]
+                    &times;
                   </span>
                 </p>
               </div>
@@ -125,7 +111,7 @@ function App() {
           })
         ) : (
           <div>
-            <h1 style={{ color: 'white' }}>No todos</h1>
+            <h1>no todos</h1>
           </div>
         )}
       </div>
