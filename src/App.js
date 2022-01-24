@@ -72,7 +72,7 @@ function App() {
         <form id="to-do-form" onSubmit={onFormSubmit}>
           <input
             placeholder="Add a todo"
-            value={addTask.text}
+            value={addTask}
             onChange={(e) => textInput(e.target.value)}
           />
           <button disabled={!addValid} type="submit">
